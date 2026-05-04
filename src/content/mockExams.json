@@ -1,0 +1,12 @@
+[
+  {
+    "id": "mock-01",
+    "name": "Mock Exam 1 – Fundamentals",
+    "questionIds": ["sm-01", "dc-02", "gr-04", "dp-05", "sm-04"]
+  },
+  {
+    "id": "mock-02",
+    "name": "Mock Exam 2 – Advanced",
+    "questionIds": ["gr-02", "dp-01", "sm-07", "dc-05", "dp-06"]
+  }
+]
