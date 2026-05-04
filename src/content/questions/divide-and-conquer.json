@@ -1,0 +1,166 @@
+[
+  {
+    "id": "dc-01",
+    "topic": "divide-and-conquer",
+    "type": "lecture",
+    "difficulty": "easy",
+    "timeEstimateMin": 5,
+    "prompt": "Explain the divide-and-conquer paradigm. What are the three steps? Give two examples of algorithms that use it.",
+    "answer": "Divide-and-conquer: (1) Divide the problem into smaller subproblems of the same type; (2) Conquer: solve each subproblem recursively (base case when small enough); (3) Combine: merge subproblem solutions into the overall solution. Examples: Merge Sort (divide array in half, sort each, merge) and Binary Search (divide search space in half each step).",
+    "hint": "Think recursion: what do you split, how do you solve the pieces, and how do you put the pieces back together?",
+    "steps": [
+      "Step 1 — Divide: break the problem of size n into a subproblems each of size n/b.",
+      "Step 2 — Conquer: solve each subproblem recursively. If size ≤ threshold, solve directly.",
+      "Step 3 — Combine: merge results of subproblems into a solution for the original.",
+      "Recurrence: T(n) = a·T(n/b) + f(n), where f(n) = cost of divide+combine.",
+      "Example 1 — Merge Sort: T(n)=2T(n/2)+Θ(n). Divides in O(1), merges in O(n).",
+      "Example 2 — Binary Search: T(n)=T(n/2)+Θ(1). Divides in O(1), no combine step."
+    ],
+    "tags": ["divide-and-conquer", "paradigm", "recurrence"],
+    "references": [{"materialId": "lecture-4-5", "page": 1}],
+    "visualId": "recursion-tree"
+  },
+  {
+    "id": "dc-02",
+    "topic": "divide-and-conquer",
+    "type": "lecture",
+    "difficulty": "medium",
+    "timeEstimateMin": 10,
+    "prompt": "State the Master Theorem. What are the three cases and when does each apply? Give the solution for each case.",
+    "answer": "Master Theorem for T(n)=aT(n/b)+f(n), a≥1, b>1:\nCase 1: f(n)=O(n^(log_b a - ε)) for some ε>0 → T(n)=Θ(n^log_b(a))\nCase 2: f(n)=Θ(n^log_b(a) · log^k(n)) for k≥0 → T(n)=Θ(n^log_b(a) · log^(k+1)(n))\nCase 3: f(n)=Ω(n^(log_b a + ε)) and a·f(n/b)≤c·f(n) for c<1 → T(n)=Θ(f(n))",
+    "hint": "Compare f(n) to the 'watershed' function n^(log_b(a)). Is f(n) polynomially smaller (Case 1), about the same (Case 2), or polynomially larger (Case 3)?",
+    "steps": [
+      "Setup: T(n) = aT(n/b) + f(n), a≥1, b>1. The watershed function is n^(log_b a).",
+      "Case 1: f(n) is polynomially SMALLER than n^(log_b a). f(n)=O(n^(log_b a - ε)) for some ε>0. Solution: T(n)=Θ(n^(log_b a)). The subproblem work dominates.",
+      "Case 2: f(n) is roughly EQUAL to n^(log_b a). f(n)=Θ(n^(log_b a) · log^k n) for k≥0. Solution: T(n)=Θ(n^(log_b a) · log^(k+1) n). Equal contributions, log factor added.",
+      "Case 3: f(n) is polynomially LARGER than n^(log_b a). f(n)=Ω(n^(log_b a + ε)) AND regularity condition a·f(n/b) ≤ c·f(n). Solution: T(n)=Θ(f(n)). Combine cost dominates.",
+      "Memory aid: the larger of {n^(log_b a), f(n)} wins. If tied, multiply by log n."
+    ],
+    "tags": ["master-theorem", "recurrence", "asymptotic"],
+    "references": [{"materialId": "lecture-4-5", "page": 5}],
+    "visualId": "master-method"
+  },
+  {
+    "id": "dc-03",
+    "topic": "divide-and-conquer",
+    "type": "lecture",
+    "difficulty": "medium",
+    "timeEstimateMin": 8,
+    "prompt": "Analyze the time complexity of Merge Sort using the Master Theorem. Show all steps.",
+    "answer": "Merge Sort: T(n)=2T(n/2)+Θ(n). a=2, b=2, f(n)=Θ(n). n^(log_2 2)=n^1=n. Since f(n)=Θ(n)=Θ(n^1·log^0 n), Case 2 applies with k=0. T(n)=Θ(n log n).",
+    "hint": "Write down the recurrence, identify a, b, f(n), compute n^(log_b a), then compare f(n) to it.",
+    "steps": [
+      "Merge Sort recurrence: T(n) = 2·T(n/2) + Θ(n).",
+      "Identify parameters: a=2 (two subproblems), b=2 (each half size), f(n)=Θ(n) (merging two halves takes linear time).",
+      "Compute watershed: n^(log_b a) = n^(log_2 2) = n^1 = n.",
+      "Compare f(n)=Θ(n) to n^1=n: f(n)=Θ(n^1 · log^0 n). This matches Case 2 with k=0.",
+      "Apply Case 2: T(n) = Θ(n^(log_2 2) · log^(0+1) n) = Θ(n log n).",
+      "Merge Sort runs in Θ(n log n) in all cases (best, average, worst)."
+    ],
+    "tags": ["merge-sort", "master-theorem", "complexity"],
+    "references": [{"materialId": "lecture-4-5", "page": 7}],
+    "visualId": "recursion-tree"
+  },
+  {
+    "id": "dc-04",
+    "topic": "divide-and-conquer",
+    "type": "practical",
+    "difficulty": "easy",
+    "timeEstimateMin": 10,
+    "prompt": "Trace merge sort on the array [5, 3, 8, 1, 9, 2, 7, 4]. Show the divide and merge steps.",
+    "answer": "Final sorted array: [1, 2, 3, 4, 5, 7, 8, 9]",
+    "hint": "Split the array in half recursively until single elements. Then merge pairs bottom-up.",
+    "steps": [
+      "Level 0: [5,3,8,1,9,2,7,4]",
+      "Level 1: [5,3,8,1] | [9,2,7,4]",
+      "Level 2: [5,3] | [8,1] | [9,2] | [7,4]",
+      "Level 3: [5]|[3] | [8]|[1] | [9]|[2] | [7]|[4]",
+      "Merge level 3→2: merge([5],[3])=[3,5]; merge([8],[1])=[1,8]; merge([9],[2])=[2,9]; merge([7],[4])=[4,7]",
+      "Merge level 2→1: merge([3,5],[1,8])=[1,3,5,8]; merge([2,9],[4,7])=[2,4,7,9]",
+      "Merge level 1→0: merge([1,3,5,8],[2,4,7,9])=[1,2,3,4,5,7,8,9]",
+      "Result: [1,2,3,4,5,7,8,9]. Total comparisons: O(n log n) = O(8·3) = O(24)."
+    ],
+    "tags": ["merge-sort", "worked-example", "trace"],
+    "references": [{"materialId": "lecture-4-5", "page": 8}],
+    "visualId": "recursion-tree"
+  },
+  {
+    "id": "dc-05",
+    "topic": "divide-and-conquer",
+    "type": "practical",
+    "difficulty": "medium",
+    "timeEstimateMin": 8,
+    "prompt": "Solve the following recurrences using the Master Theorem. Show which case applies:\n(a) T(n) = 4T(n/2) + n\n(b) T(n) = 4T(n/2) + n²\n(c) T(n) = 4T(n/2) + n³",
+    "answer": "(a) T(n)=Θ(n²)  (b) T(n)=Θ(n² log n)  (c) T(n)=Θ(n³)",
+    "hint": "For each: compute n^(log_b a), compare to f(n), identify the case.",
+    "steps": [
+      "(a) T(n)=4T(n/2)+n: a=4, b=2, f(n)=n. Watershed: n^(log_2 4)=n^2. f(n)=n=O(n^(2-1)) → Case 1 (ε=1). T(n)=Θ(n²).",
+      "(b) T(n)=4T(n/2)+n²: a=4, b=2, f(n)=n². Watershed: n^2. f(n)=Θ(n²)=Θ(n^2·log^0 n) → Case 2 (k=0). T(n)=Θ(n² log n).",
+      "(c) T(n)=4T(n/2)+n³: a=4, b=2, f(n)=n³. Watershed: n^2. f(n)=n³=Ω(n^(2+1)) → check Case 3. Regularity: 4·(n/2)³=4·n³/8=n³/2=0.5·n³ ≤ c·n³ for c=0.5<1 ✓. T(n)=Θ(n³)."
+    ],
+    "tags": ["master-theorem", "recurrence-solving", "worked-example"],
+    "references": [{"materialId": "lecture-4-5", "page": 6}],
+    "visualId": "master-method"
+  },
+  {
+    "id": "dc-06",
+    "topic": "divide-and-conquer",
+    "type": "practical",
+    "difficulty": "medium",
+    "timeEstimateMin": 8,
+    "prompt": "Trace binary search for key=7 in the sorted array [1,3,5,7,9,11,13,15]. Show the mid index at each step.",
+    "answer": "Found at index 3. Steps: mid=3(val=7) → found in 1 comparison.",
+    "hint": "Binary search: mid = (lo+hi)/2. If arr[mid]==key, done. If key < arr[mid], search left half; else right half.",
+    "steps": [
+      "Array: indices 0–7: [1,3,5,7,9,11,13,15]. Search key=7.",
+      "Step 1: lo=0, hi=7, mid=3. arr[3]=7. arr[mid]=7 == key=7. Found at index 3.",
+      "Binary search is extremely efficient here: found in 1 step (best case).",
+      "Worst case example: search key=15. Step 1: mid=3, arr[3]=7<15 → lo=4. Step 2: mid=5, arr[5]=11<15 → lo=6. Step 3: mid=6, arr[6]=13<15 → lo=7. Step 4: mid=7, arr[7]=15=15. Found in 4 steps = log₂(8)."
+    ],
+    "tags": ["binary-search", "trace", "worked-example"],
+    "references": [{"materialId": "lecture-4-5", "page": 10}]
+  },
+  {
+    "id": "dc-07",
+    "topic": "divide-and-conquer",
+    "type": "practical",
+    "difficulty": "hard",
+    "timeEstimateMin": 20,
+    "prompt": "Describe the closest pair of points algorithm. What is its time complexity and how does the combine step work?",
+    "answer": "T(n)=2T(n/2)+O(n log n) in the simple analysis, giving O(n log² n). With careful implementation of the combine step in O(n), it's T(n)=2T(n/2)+O(n) = O(n log n). Key insight in combine: only need to check points within δ of the dividing line, and within a 2δ×δ rectangle there are at most 8 points.",
+    "hint": "The key challenge is the combine step. After finding the closest pair in each half (distance δ), you need to efficiently find pairs that straddle the dividing line.",
+    "steps": [
+      "Problem: given n points, find the pair with minimum distance.",
+      "Divide: split points by x-coordinate into left and right halves.",
+      "Conquer: recursively find closest pairs in each half with distances d_L and d_R. Let δ = min(d_L, d_R).",
+      "Combine: consider pairs straddling the dividing line. Only points within δ of the line matter → 'strip'.",
+      "Key insight: within the strip, sort by y-coordinate. For each point p, only need to check points within distance δ in y → at most 7 other points (geometric argument: in a 2δ×δ rectangle, max 8 points).",
+      "Combine step: O(n) if strip is already sorted (maintained through recursive calls).",
+      "Recurrence: T(n) = 2T(n/2) + O(n) (with presorted arrays) → T(n) = O(n log n) by Master Theorem Case 2.",
+      "Overall: O(n log n) time with O(n log n) preprocessing (sort by x and y)."
+    ],
+    "tags": ["closest-pair", "geometric-algorithm", "combine-step"],
+    "references": [{"materialId": "lecture-4-5", "page": 15}],
+    "visualId": "recursion-tree"
+  },
+  {
+    "id": "dc-08",
+    "topic": "divide-and-conquer",
+    "type": "lecture",
+    "difficulty": "hard",
+    "timeEstimateMin": 10,
+    "prompt": "When can the Master Theorem NOT be applied? Give at least two examples of recurrences that fall outside the Master Theorem's scope.",
+    "answer": "1) T(n)=2T(n/2)+n/log n — f(n) and n^(log_b a)=n differ by a log factor in the wrong direction (not a polynomial difference), so none of the 3 cases apply. 2) T(n)=T(n-1)+1 — this is not of the form aT(n/b) (subproblem size decreases by subtraction, not division). 3) T(n)=4T(n/2)+n²·log n — Case 2 requires f(n)=Θ(n^(log_b a)·log^k n) but may need the extended form.",
+    "hint": "The Master Theorem requires: subproblems of size n/b (not n-c), and f(n) must differ POLYNOMIALLY (by n^ε) from the watershed function.",
+    "steps": [
+      "Master Theorem requires: T(n) = aT(n/b)+f(n), a≥1, b>1, and comparison is POLYNOMIAL (n^ε difference).",
+      "Failure 1 — non-polynomial gap: T(n)=2T(n/2)+n/log n. Watershed=n. f(n)=n/log n. Is f(n)=O(n^(1-ε))? No: n/log n is not O(n^(1-ε)) for any ε>0, since n^(1-ε) grows slower than n/log n for small ε. Case 1 doesn't apply. Case 2: is f(n)=Θ(n)? No. Master Theorem inapplicable.",
+      "Failure 2 — subtraction recurrence: T(n)=T(n-1)+1. Subproblem size is n-1, not n/b. Use substitution instead: T(n)=n=Θ(n).",
+      "Failure 3 — violates regularity in Case 3: sometimes f(n) is polynomially larger but regularity condition fails.",
+      "Alternative: use recursion tree method or substitution (guess and verify) for these cases."
+    ],
+    "tags": ["master-theorem-limitations", "recurrence", "substitution-method"],
+    "references": [{"materialId": "lecture-4-5", "page": 9}],
+    "visualId": "master-method"
+  }
+]

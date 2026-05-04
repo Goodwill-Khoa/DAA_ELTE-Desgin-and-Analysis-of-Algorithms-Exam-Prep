@@ -1,0 +1,171 @@
+[
+  {
+    "id": "sm-01",
+    "topic": "stable-matching",
+    "type": "lecture",
+    "difficulty": "easy",
+    "timeEstimateMin": 5,
+    "prompt": "Define a stable matching. What is a blocking pair? Give an example.",
+    "answer": "A stable matching is a perfect matching M with no blocking pair. A blocking pair (m,w) ∉ M exists when m prefers w over M(m) AND w prefers m over M(w). Example: if M = {(m1,w2),(m2,w1)} but m1 prefers w1 and w1 prefers m1, then (m1,w1) is a blocking pair.",
+    "hint": "Think about what 'instability' means for a matched couple — when would both people want to leave their current partner for each other?",
+    "steps": [
+      "A matching M is perfect if every person in both sets is matched to exactly one person.",
+      "A blocking pair (m, w) ∉ M exists when: m prefers w over his current partner M(m), AND w prefers m over her current partner M(w).",
+      "A matching is stable if and only if no blocking pair exists.",
+      "Example: Men = {m1,m2}, Women = {w1,w2}. M = {(m1,w2),(m2,w1)}. If m1's top choice is w1 and w1's top choice is m1, then (m1,w1) is a blocking pair → M is unstable."
+    ],
+    "tags": ["definition", "blocking-pair", "stability"],
+    "references": [{"materialId": "lecture-2", "page": 1}, {"materialId": "lecture-notes"}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-02",
+    "topic": "stable-matching",
+    "type": "lecture",
+    "difficulty": "medium",
+    "timeEstimateMin": 10,
+    "prompt": "Prove that the Gale-Shapley algorithm always terminates and produces a stable matching.",
+    "answer": "Termination: each man proposes to each woman at most once, so at most n² proposals occur — the algorithm must stop. Stability: suppose (m,w) is a blocking pair. Then m proposed to w at some point (he proposes in preference order and prefers w over M(m)). w must have rejected m, meaning she had a better proposal. She only trades up, so M(w) is better than m — contradicting that w prefers m over M(w). No blocking pair exists.",
+    "hint": "For termination, count the maximum number of proposals. For stability, use contradiction: assume a blocking pair exists and trace what happened during the algorithm.",
+    "steps": [
+      "Termination: In each round at least one proposal is made. Each man proposes to each woman at most once (free men go down their list). So total proposals ≤ n². Algorithm terminates in O(n²) steps.",
+      "Stability proof by contradiction: suppose (m,w) is a blocking pair in the output M.",
+      "Since m prefers w over M(m), m must have proposed to w before proposing to M(m) (men propose in order).",
+      "When m proposed to w, she either rejected him immediately or later dumped him for someone better.",
+      "Either way, w's final partner M(w) is someone she prefers over m.",
+      "But this contradicts (m,w) being a blocking pair (requires w to prefer m over M(w)).",
+      "Therefore no blocking pair exists and M is stable."
+    ],
+    "tags": ["proof", "termination", "correctness", "gale-shapley"],
+    "references": [{"materialId": "lecture-2", "page": 3}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-03",
+    "topic": "stable-matching",
+    "type": "lecture",
+    "difficulty": "medium",
+    "timeEstimateMin": 10,
+    "prompt": "What is man-optimality in the Gale-Shapley algorithm? State and prove the Man-Optimality Theorem.",
+    "answer": "Man-Optimality: Every man is matched to his best valid partner (a woman who is his partner in some stable matching). GS from the men's side gives every man his best valid partner simultaneously. Proof: by induction, if no man has been rejected by a valid partner at step k, then at step k+1 suppose m is rejected by valid partner w who prefers m'. By assumption m' hasn't been rejected by any valid partner, so m' is tentatively matched to w or better. But w prefers m' over m, meaning (m',w) can't block a matching where m is with w. So m' being matched to w in some stable matching where m is with w would give m' a worse outcome — contradiction.",
+    "hint": "A 'valid partner' for m is any woman w such that (m,w) appear together in at least one stable matching. The key insight: men are never rejected by valid partners during GS.",
+    "steps": [
+      "Definition: w is a valid partner for m if ∃ a stable matching where m and w are matched.",
+      "Man-Optimality Theorem: In GS (men propose), every man is matched to his best valid partner.",
+      "Proof by contradiction: suppose some man m is rejected by a valid partner w during the algorithm.",
+      "Consider the first such rejection: m is rejected by w in favor of m'. At this point, no man has yet been rejected by a valid partner.",
+      "w prefers m' over m. Since w is a valid partner for m, there exists a stable matching S where m–w are matched.",
+      "In S, m' is matched to some w' ≠ w. Since no man has been rejected by a valid partner yet, m' still has w on his list (hasn't been rejected by w). But m' is currently matched to w (who he prefers over w' since he hasn't been rejected by her yet).",
+      "Thus m' prefers w over w', and w prefers m' over m → (m',w) is a blocking pair in S. Contradiction with S being stable."
+    ],
+    "tags": ["man-optimality", "proof", "valid-partner"],
+    "references": [{"materialId": "lecture-2", "page": 5}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-04",
+    "topic": "stable-matching",
+    "type": "practical",
+    "difficulty": "easy",
+    "timeEstimateMin": 12,
+    "prompt": "Run the Gale-Shapley algorithm on the following instance. Show every proposal.\n\nMen's preferences:\n  m1: w1 > w2 > w3\n  m2: w2 > w1 > w3\n  m3: w1 > w3 > w2\n\nWomen's preferences:\n  w1: m2 > m1 > m3\n  w2: m1 > m2 > m3\n  w3: m1 > m2 > m3\n\nWhat is the final stable matching?",
+    "answer": "Final matching: {(m1,w2), (m2,w1), (m3,w3)}",
+    "hint": "Start with all men free. Each free man proposes to his top choice. Women tentatively accept the best proposal so far and reject the rest.",
+    "steps": [
+      "Round 1: All men free. m1→w1 (tentative: w1 holds m1), m2→w2 (tentative: w2 holds m2), m3→w1 (w1 compares m1 vs m3: w1 prefers m1→rejects m3). Status: m1-w1, m2-w2, m3 free.",
+      "Round 2: m3 is free, proposes to next on his list: w3. w3 has no current partner → accepts. Status: m1-w1, m2-w2, m3-w3.",
+      "All men are matched. Algorithm ends.",
+      "Final matching: M = {(m1,w1), (m2,w2), (m3,w3)}.",
+      "Wait — let's recheck round 1: m2 proposes to w2 (his top). w2 tentatively holds m2. m1 proposes to w1 (his top). w1 tentatively holds m1. m3 proposes to w1. w1 prefers m1 over m3 → rejects m3.",
+      "Round 2: m3 proposes to w3 (next). w3 accepts. All matched. M = {(m1,w1),(m2,w2),(m3,w3)}."
+    ],
+    "tags": ["gale-shapley", "worked-example", "proposals"],
+    "references": [{"materialId": "lecture-2", "page": 4}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-05",
+    "topic": "stable-matching",
+    "type": "practical",
+    "difficulty": "medium",
+    "timeEstimateMin": 10,
+    "prompt": "Given the matching M = {(m1,w3),(m2,w1),(m3,w2)}, determine whether it is stable.\n\nPreferences:\n  m1: w1>w2>w3  m2: w2>w1>w3  m3: w1>w3>w2\n  w1: m1>m2>m3  w2: m3>m1>m2  w3: m1>m3>m2",
+    "answer": "M is NOT stable. Blocking pairs: (m1,w1) — m1 prefers w1 over w3, and w1 prefers m1 over m2.",
+    "hint": "Check every pair (m,w) not in M: does m prefer w over his current match AND does w prefer m over her current match?",
+    "steps": [
+      "Current matching: m1↔w3, m2↔w1, m3↔w2.",
+      "Check (m1,w1): m1 prefers w1 over w3 ✓. w1 prefers m1 over m2 ✓. → BLOCKING PAIR.",
+      "Since a blocking pair exists, M is NOT stable.",
+      "For completeness: (m1,w2): m1 prefers w2 over w3 ✓, but w2 prefers m3 over m1 ✗. Not blocking.",
+      "(m2,w2): m2 prefers w2 over w1 ✓, but w2 prefers m3 over m2 ✗. Not blocking.",
+      "(m3,w1): m3 prefers w1 over w2 ✓, but w1 prefers m2 over m3 ✗. Not blocking.",
+      "Conclusion: M is unstable due to blocking pair (m1,w1)."
+    ],
+    "tags": ["blocking-pair", "verification", "stability-check"],
+    "references": [{"materialId": "lecture-2"}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-06",
+    "topic": "stable-matching",
+    "type": "practical",
+    "difficulty": "medium",
+    "timeEstimateMin": 15,
+    "prompt": "For the preference lists below, find ALL stable matchings.\n\nm1: w1>w2  m2: w2>w1\nw1: m1>m2  w2: m1>m2",
+    "answer": "Only one stable matching: {(m1,w1),(m2,w2)}. The matching {(m1,w2),(m2,w1)} is unstable because (m1,w1) is a blocking pair.",
+    "hint": "With 2 men and 2 women there are only 2 perfect matchings. Check each one for blocking pairs.",
+    "steps": [
+      "Two possible perfect matchings: M1={(m1,w1),(m2,w2)} and M2={(m1,w2),(m2,w1)}.",
+      "Check M1: Pairs not in M1: (m1,w2) — m1 prefers w1 over w2 ✗. (m2,w1) — m2 prefers w2 over w1 ✗. No blocking pairs → M1 is STABLE.",
+      "Check M2: Pairs not in M2: (m1,w1) — m1 prefers w1 over w2 ✓; w1 prefers m1 over m2 ✓. → BLOCKING PAIR. M2 is UNSTABLE.",
+      "Result: Only M1 = {(m1,w1),(m2,w2)} is stable.",
+      "Note: When men and women have identical preference orderings (both prefer the same man), there is always a unique stable matching."
+    ],
+    "tags": ["all-stable-matchings", "enumeration"],
+    "references": [{"materialId": "lecture-2b"}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-07",
+    "topic": "stable-matching",
+    "type": "practical",
+    "difficulty": "hard",
+    "timeEstimateMin": 20,
+    "prompt": "Show that there can exist multiple stable matchings for the same instance. Construct an example with 3 men and 3 women that has at least 2 distinct stable matchings.",
+    "answer": "Example: m1:w1>w2>w3, m2:w2>w1>w3, m3:w3>w2>w1; w1:m2>m1>m3, w2:m3>m2>m1, w3:m1>m3>m2. GS (men propose) gives {(m1,w1),(m2,w2),(m3,w3)} and the women-optimal GS gives a different matching.",
+    "hint": "Run GS with men proposing to get one stable matching. Then run GS with women proposing. If the results differ, both are stable matchings of the same instance.",
+    "steps": [
+      "Use preferences: m1:w1>w2>w3, m2:w2>w1>w3, m3:w3>w2>w1; w1:m2>m1>m3, w2:m3>m2>m1, w3:m1>m3>m2.",
+      "GS (men propose): Round 1: m1→w1(holds m1), m2→w2(holds m2), m3→w3(holds m3). All matched immediately.",
+      "Man-optimal matching M_M = {(m1,w1),(m2,w2),(m3,w3)}.",
+      "GS (women propose): Round 1: w1→m2(holds w1), w2→m3(holds w2), w3→m1(holds w3). All matched immediately.",
+      "Woman-optimal matching M_W = {(m1,w3),(m2,w1),(m3,w2)}.",
+      "Verify M_W is stable: Check all non-matched pairs — none form blocking pairs.",
+      "Conclusion: M_M ≠ M_W, both are stable. Multiple stable matchings exist for this instance."
+    ],
+    "tags": ["multiple-stable-matchings", "woman-optimal", "construction"],
+    "references": [{"materialId": "lecture-2b"}],
+    "visualId": "gale-shapley"
+  },
+  {
+    "id": "sm-08",
+    "topic": "stable-matching",
+    "type": "lecture",
+    "difficulty": "hard",
+    "timeEstimateMin": 8,
+    "prompt": "What is the time complexity of the Gale-Shapley algorithm? Provide a detailed justification.",
+    "answer": "O(n²). Each of the n men makes at most n proposals (one per woman). Total proposals ≤ n². Each proposal takes O(1) with the right data structures (linked list of proposals per man, array of women's current best, precomputed ranking tables for women). Total: O(n²).",
+    "hint": "Count the maximum number of proposals. Each proposal takes O(1) with appropriate data structures — think about how a woman decides whether to accept/reject in O(1).",
+    "steps": [
+      "Number of men: n, number of women: n.",
+      "Each man proposes at most once to each woman → at most n proposals per man → n·n = n² total proposals.",
+      "Each proposal: man m proposes to next woman on his list (O(1) with a pointer).",
+      "Women's decision: woman w compares new proposer to current tentative partner. To do this in O(1), precompute ranking table rank[w][m] = position of m in w's preference list (O(n²) preprocessing).",
+      "Accept/reject is then one comparison: O(1).",
+      "Total time: O(n²) preprocessing + O(n²) proposals = O(n²).",
+      "Space: O(n²) for the preference lists and ranking tables."
+    ],
+    "tags": ["complexity", "time-analysis", "data-structures"],
+    "references": [{"materialId": "lecture-2", "page": 6}]
+  }
+]
