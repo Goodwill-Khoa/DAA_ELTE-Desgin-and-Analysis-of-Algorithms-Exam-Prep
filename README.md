@@ -2,6 +2,9 @@
 
 Interactive exam preparation web app for **ELTE MSc – Design and Analysis of Algorithms (DAA)**.
 
+## Live Demo
+https://Goodwill-Khoa.github.io/DAA_ELTE-Desgin-and-Analysis-of-Algorithms-Exam-Prep/
+
 ## About
 This repository contains a React + TypeScript single-page application built with **Vite**. It is intended to help with DAA exam preparation (e.g., mock exams, explanations, and study materials).
 
