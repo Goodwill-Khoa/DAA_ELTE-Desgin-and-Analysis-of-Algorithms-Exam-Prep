@@ -66,10 +66,11 @@ export default function DPTableViz() {
   const svgW = (n + 2) * CELL + 20
   const svgH = (m + 2) * CELL + 20
   const xOff = CELL * 2, yOff = CELL * 2
+  const readableMono = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
 
   return (
     <div>
-      <div className="alert alert-info mb-2" style={{ fontSize: '0.85rem' }}>
+      <div className="alert alert-info mb-2" style={{ fontSize: '0.95rem', lineHeight: 1.55, fontFamily: readableMono }}>
         <strong>LCS of X="{X}" and Y="{Y}"</strong><br />
         dp[i][j] = LCS length of X[1..i] and Y[1..j].<br />
         If X[i]=Y[j]: dp[i][j]=dp[i-1][j-1]+1 (↖ diagonal)<br />
@@ -77,7 +78,7 @@ export default function DPTableViz() {
       </div>
 
       <svg
-        viewBox={`0 0 ${svgW} ${svgH}`}
+        viewBox={`50 50 ${svgW} ${svgH}`}
         width="100%"
         style={{ maxWidth: svgW, display: 'block', margin: '0 auto' }}
         aria-label="LCS dynamic programming table"
@@ -140,7 +141,15 @@ export default function DPTableViz() {
         )}
       </svg>
 
-      <div className="alert alert-info mt-2" style={{ minHeight: '2.5rem', fontSize: '0.9rem' }}>
+      <div
+        className="alert alert-info mt-2"
+        style={{
+          minHeight: '2.5rem',
+          fontSize: '0.95rem',
+          lineHeight: 1.55,
+          fontFamily: readableMono,
+        }}
+      >
         {currentCell
           ? `Filling dp[${currentCell.i}][${currentCell.j}]: X[${currentCell.i}]="${X[currentCell.i - 1]}" vs Y[${currentCell.j}]="${Y[currentCell.j - 1]}" → ${currentCell.from === 'diag' ? `match! dp=${currentCell.val}` : `no match, take max → ${currentCell.val}`}`
           : stepIdx >= STEPS.length - 1
@@ -157,7 +166,9 @@ export default function DPTableViz() {
         </button>
         <button className="btn btn-secondary btn-sm" onClick={step} disabled={stepIdx >= STEPS.length - 1}>▶ Step</button>
         <button className="btn btn-secondary btn-sm" onClick={() => setStepIdx(STEPS.length - 1)}>⏭ End</button>
-        <span className="text-muted text-small">Cell {Math.max(stepIdx + 1, 0)} / {STEPS.length}</span>
+        <span className="text-muted text-small" style={{ fontFamily: readableMono, fontSize: '0.9rem' }}>
+          Cell {Math.max(stepIdx + 1, 0)} / {STEPS.length}
+        </span>
       </div>
     </div>
   )
