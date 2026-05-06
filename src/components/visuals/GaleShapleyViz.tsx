@@ -1,49 +1,104 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-// Preferences: men prefer women in order, women prefer men in order
-const MEN = ['m1', 'm2', 'm3']
-const WOMEN = ['w1', 'w2', 'w3']
+type RandomizationType = 'balanced' | 'competitive' | 'diverse'
 
-const MEN_PREFS: Record<string, string[]> = {
-  m1: ['w1', 'w2', 'w3'],
-  m2: ['w2', 'w1', 'w3'],
-  m3: ['w1', 'w3', 'w2'],
+const RANDOMIZATION_LABELS: Record<RandomizationType, string> = {
+  balanced: 'Balanced random',
+  competitive: 'Competitive (popular choices)',
+  diverse: 'Diverse (spread preferences)',
 }
-const WOMEN_PREFS: Record<string, string[]> = {
-  w1: ['m2', 'm1', 'm3'],
-  w2: ['m1', 'm2', 'm3'],
-  w3: ['m1', 'm2', 'm3'],
+
+function makeAgents(prefix: 'm' | 'w', count: number) {
+  return Array.from({ length: count }, (_, i) => `${prefix}${i + 1}`)
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+function rotate<T>(arr: T[], shift: number): T[] {
+  if (arr.length === 0) return []
+  const s = ((shift % arr.length) + arr.length) % arr.length
+  return arr.slice(s).concat(arr.slice(0, s))
+}
+
+function buildPreferenceString(order: string[]) {
+  return order.join('>')
+}
+
+function generatePreferences(men: string[], women: string[], style: RandomizationType) {
+  const menPrefs: Record<string, string[]> = {}
+  const womenPrefs: Record<string, string[]> = {}
+
+  for (const m of men) {
+    menPrefs[m] = shuffle(women)
+  }
+
+  if (style === 'balanced') {
+    for (const w of women) {
+      womenPrefs[w] = shuffle(men)
+    }
+    return { menPrefs, womenPrefs }
+  }
+
+  if (style === 'competitive') {
+    const popular = shuffle(men)
+    for (const w of women) {
+      const ranked = [...popular]
+      const i = Math.floor(Math.random() * ranked.length)
+      const j = Math.floor(Math.random() * ranked.length)
+      ;[ranked[i], ranked[j]] = [ranked[j], ranked[i]]
+      womenPrefs[w] = ranked
+    }
+    return { menPrefs, womenPrefs }
+  }
+
+  const base = shuffle(men)
+  for (let i = 0; i < women.length; i++) {
+    womenPrefs[women[i]] = rotate(base, i)
+  }
+  return { menPrefs, womenPrefs }
 }
 
 interface Step {
   proposer: string
   proposee: string
-  action: 'propose' | 'accept' | 'reject' | 'done'
+  action: 'accept' | 'reject' | 'done'
   matching: Record<string, string>  // woman -> man (tentative)
   nextProposal: Record<string, number>  // man -> next index
   message: string
 }
 
-function buildSteps(): Step[] {
+function buildSteps(
+  men: string[],
+  women: string[],
+  menPrefs: Record<string, string[]>,
+  womenPrefs: Record<string, string[]>
+): Step[] {
   const steps: Step[] = []
   const matching: Record<string, string> = {}  // woman -> man
-  const nextProposal: Record<string, number> = { m1: 0, m2: 0, m3: 0 }
+  const nextProposal: Record<string, number> = Object.fromEntries(men.map((m) => [m, 0]))
 
   const rank: Record<string, Record<string, number>> = {}
-  for (const w of WOMEN) {
+  for (const w of women) {
     rank[w] = {}
-    WOMEN_PREFS[w].forEach((m, i) => { rank[w][m] = i })
+    womenPrefs[w].forEach((m, i) => { rank[w][m] = i })
   }
 
   let iterations = 0
-  while (iterations < 50) {
+  while (iterations < men.length * women.length * 4) {
     iterations++
-    const freeMen = MEN.filter((m) => !Object.values(matching).includes(m))
+    const freeMen = men.filter((m) => !Object.values(matching).includes(m))
     if (freeMen.length === 0) break
 
     for (const m of freeMen) {
-      if (nextProposal[m] >= WOMEN.length) continue
-      const w = MEN_PREFS[m][nextProposal[m]]
+      if (nextProposal[m] >= women.length) continue
+      const w = menPrefs[m][nextProposal[m]]
       const propIdx = nextProposal[m]
       const newNext = { ...nextProposal, [m]: propIdx + 1 }
 
@@ -92,47 +147,105 @@ function buildSteps(): Step[] {
   return steps
 }
 
-const STEPS = buildSteps()
-
-const MAN_X = 80
-const WOMAN_X = 320
-const NODE_R = 22
-const ROW_H = 80
+const MAN_X = 100
+const WOMAN_X = 420
 
 export default function GaleShapleyViz() {
+  const [count, setCount] = useState(3)
+  const [randomization, setRandomization] = useState<RandomizationType>('balanced')
+  const [seed, setSeed] = useState(0)
   const [stepIdx, setStepIdx] = useState(-1)  // -1 = initial state
   const [playing, setPlaying] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const currentStep = stepIdx >= 0 ? STEPS[stepIdx] : null
+  const { men, women, menPrefs, womenPrefs, steps } = useMemo(() => {
+    const menList = makeAgents('m', count)
+    const womenList = makeAgents('w', count)
+    const prefs = generatePreferences(menList, womenList, randomization)
+    return {
+      men: menList,
+      women: womenList,
+      menPrefs: prefs.menPrefs,
+      womenPrefs: prefs.womenPrefs,
+      steps: buildSteps(menList, womenList, prefs.menPrefs, prefs.womenPrefs),
+    }
+  }, [count, randomization, seed])
+
+  useEffect(() => {
+    setStepIdx(-1)
+    setPlaying(false)
+  }, [count, randomization, seed])
+
+  const currentStep = stepIdx >= 0 ? steps[stepIdx] : null
   const matching = currentStep?.matching ?? {}
 
   useEffect(() => {
     if (playing) {
       timerRef.current = setInterval(() => {
         setStepIdx((i) => {
-          if (i >= STEPS.length - 1) { setPlaying(false); return i }
+          if (i >= steps.length - 1) { setPlaying(false); return i }
           return i + 1
         })
-      }, 1500)
+      }, 1100)
     } else {
       if (timerRef.current) clearInterval(timerRef.current)
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [playing])
+  }, [playing, steps.length])
 
   const reset = () => { setStepIdx(-1); setPlaying(false) }
-  const step = () => setStepIdx((i) => Math.min(i + 1, STEPS.length - 1))
+  const step = () => setStepIdx((i) => Math.min(i + 1, steps.length - 1))
   const back = () => setStepIdx((i) => Math.max(i - 1, -1))
 
-  const svgH = ROW_H * 3 + 40
-  const svgW = 420
+  const rowH = count <= 4 ? 78 : count <= 7 ? 60 : 50
+  const nodeR = count <= 5 ? 20 : count <= 8 ? 18 : 15
+  const nodeFont = count <= 7 ? 13 : 11
+  const svgH = 40 + rowH * count
+  const svgW = 520
+  const prefText = [
+    ...men.map((m) => `${m}: ${buildPreferenceString(menPrefs[m])}`),
+    ...women.map((w) => `${w}: ${buildPreferenceString(womenPrefs[w])}`),
+  ].join(' | ')
 
   return (
     <div>
-      <div className="alert alert-info mb-2" style={{ fontSize: '0.85rem' }}>
-        <strong>Preferences:</strong> m1: w1&gt;w2&gt;w3 | m2: w2&gt;w1&gt;w3 | m3: w1&gt;w3&gt;w2 &nbsp;|&nbsp;
-        w1: m2&gt;m1&gt;m3 | w2: m1&gt;m2&gt;m3 | w3: m1&gt;m2&gt;m3
+      <div className="card mb-2" style={{ padding: '0.75rem' }}>
+        <div className="flex gap-2 flex-wrap items-center">
+          <label className="text-small" htmlFor="gs-size" style={{ fontWeight: 600 }}>Participants (m = w):</label>
+          <input
+            id="gs-size"
+            type="number"
+            min={3}
+            max={10}
+            value={count}
+            onChange={(e) => {
+              const raw = Number(e.target.value)
+              if (Number.isNaN(raw)) return
+              setCount(Math.max(3, Math.min(10, raw)))
+            }}
+            style={{ width: 72, padding: '0.25rem 0.45rem', border: '1px solid #cbd5e0', borderRadius: 6 }}
+            aria-label="Number of participants"
+          />
+
+          <label className="text-small" htmlFor="gs-randomization" style={{ fontWeight: 600 }}>Randomization:</label>
+          <select
+            id="gs-randomization"
+            value={randomization}
+            onChange={(e) => setRandomization(e.target.value as RandomizationType)}
+            style={{ padding: '0.25rem 0.45rem', border: '1px solid #cbd5e0', borderRadius: 6 }}
+            aria-label="Randomization style"
+          >
+            <option value="balanced">{RANDOMIZATION_LABELS.balanced}</option>
+            <option value="competitive">{RANDOMIZATION_LABELS.competitive}</option>
+            <option value="diverse">{RANDOMIZATION_LABELS.diverse}</option>
+          </select>
+
+          <button className="btn btn-secondary btn-sm" onClick={() => setSeed((s) => s + 1)}>Randomize Instance</button>
+        </div>
+      </div>
+
+      <div className="alert alert-info mb-2" style={{ fontSize: '0.9rem', lineHeight: 1.45 }}>
+        <strong>Preferences:</strong> {prefText}
       </div>
 
       <svg
@@ -147,21 +260,21 @@ export default function GaleShapleyViz() {
 
         {/* Current matching lines (green) */}
         {Object.entries(matching).map(([w, m]) => {
-          const wi = WOMEN.indexOf(w); const mi = MEN.indexOf(m)
+          const wi = women.indexOf(w); const mi = men.indexOf(m)
           if (wi < 0 || mi < 0) return null
-          const x1 = MAN_X + NODE_R, y1 = 30 + mi * ROW_H + NODE_R
-          const x2 = WOMAN_X - NODE_R, y2 = 30 + wi * ROW_H + NODE_R
+          const x1 = MAN_X + nodeR, y1 = 30 + mi * rowH + nodeR
+          const x2 = WOMAN_X - nodeR, y2 = 30 + wi * rowH + nodeR
           return <line key={`${m}-${w}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#38a169" strokeWidth="3" strokeDasharray={currentStep?.action === 'done' ? 'none' : '6,3'} opacity="0.7" />
         })}
 
         {/* Proposal arrow */}
         {currentStep && currentStep.action !== 'done' && (
           (() => {
-            const mi = MEN.indexOf(currentStep.proposer)
-            const wi = WOMEN.indexOf(currentStep.proposee)
+            const mi = men.indexOf(currentStep.proposer)
+            const wi = women.indexOf(currentStep.proposee)
             if (mi < 0 || wi < 0) return null
-            const x1 = MAN_X + NODE_R, y1 = 30 + mi * ROW_H + NODE_R
-            const x2 = WOMAN_X - NODE_R, y2 = 30 + wi * ROW_H + NODE_R
+            const x1 = MAN_X + nodeR, y1 = 30 + mi * rowH + nodeR
+            const x2 = WOMAN_X - nodeR, y2 = 30 + wi * rowH + nodeR
             const color = currentStep.action === 'reject' ? '#e53e3e' : '#3182ce'
             return (
               <line x1={x1} y1={y1} x2={x2} y2={y2}
@@ -187,27 +300,27 @@ export default function GaleShapleyViz() {
         </defs>
 
         {/* Men nodes */}
-        {MEN.map((m, i) => {
-          const cy = 30 + i * ROW_H + NODE_R
+        {men.map((m, i) => {
+          const cy = 30 + i * rowH + nodeR
           const isProposer = currentStep?.proposer === m
           return (
             <g key={m}>
-              <circle cx={MAN_X} cy={cy} r={NODE_R}
+              <circle cx={MAN_X} cy={cy} r={nodeR}
                 fill={isProposer ? '#3182ce' : '#1a365d'} stroke={Object.values(matching).includes(m) ? '#38a169' : '#1a365d'} strokeWidth={Object.values(matching).includes(m) ? '3' : '1'} />
-              <text x={MAN_X} y={cy + 5} textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">{m}</text>
+              <text x={MAN_X} y={cy + 5} textAnchor="middle" fontSize={nodeFont} fontWeight="bold" fill="#fff">{m}</text>
             </g>
           )
         })}
 
         {/* Women nodes */}
-        {WOMEN.map((w, i) => {
-          const cy = 30 + i * ROW_H + NODE_R
+        {women.map((w, i) => {
+          const cy = 30 + i * rowH + nodeR
           const isProposee = currentStep?.proposee === w
           return (
             <g key={w}>
-              <circle cx={WOMAN_X} cy={cy} r={NODE_R}
+              <circle cx={WOMAN_X} cy={cy} r={nodeR}
                 fill={isProposee ? '#805ad5' : '#44337a'} stroke={matching[w] ? '#38a169' : '#44337a'} strokeWidth={matching[w] ? '3' : '1'} />
-              <text x={WOMAN_X} y={cy + 5} textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">{w}</text>
+              <text x={WOMAN_X} y={cy + 5} textAnchor="middle" fontSize={nodeFont} fontWeight="bold" fill="#fff">{w}</text>
             </g>
           )
         })}
@@ -222,11 +335,11 @@ export default function GaleShapleyViz() {
       <div className="viz-controls">
         <button className="btn btn-secondary btn-sm" onClick={reset}>⟳ Reset</button>
         <button className="btn btn-secondary btn-sm" onClick={back} disabled={stepIdx < 0}>◀ Back</button>
-        <button className="btn btn-primary btn-sm" onClick={() => setPlaying(!playing)} disabled={stepIdx >= STEPS.length - 1}>
+        <button className="btn btn-primary btn-sm" onClick={() => setPlaying(!playing)} disabled={stepIdx >= steps.length - 1}>
           {playing ? '⏸ Pause' : '▶ Play'}
         </button>
-        <button className="btn btn-secondary btn-sm" onClick={step} disabled={stepIdx >= STEPS.length - 1}>▶ Step</button>
-        <span className="text-muted text-small">Step {Math.max(stepIdx + 1, 0)} / {STEPS.length}</span>
+        <button className="btn btn-secondary btn-sm" onClick={step} disabled={stepIdx >= steps.length - 1}>▶ Step</button>
+        <span className="text-muted text-small">Step {Math.max(stepIdx + 1, 0)} / {steps.length}</span>
       </div>
     </div>
   )

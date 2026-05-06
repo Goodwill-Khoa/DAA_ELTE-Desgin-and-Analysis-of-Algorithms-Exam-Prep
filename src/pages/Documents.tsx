@@ -35,7 +35,7 @@ export default function Documents() {
       <div className="mb-4">
         <h1 style={{ marginBottom: '0.25rem' }}>📄 Course Documents</h1>
         <p className="text-muted">
-          Lecture notes and reference materials for the DAA course by : Khoa Goodwill a9n7p5@inf.elte.hu.
+          Lecture notes and reference materials for the DAA course Instructor: Dr. László Szabó · szabolaszlo@inf.elte.hu 
         </p>
       </div>
 
