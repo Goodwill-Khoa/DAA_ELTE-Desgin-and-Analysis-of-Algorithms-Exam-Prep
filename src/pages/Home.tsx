@@ -13,7 +13,7 @@ export default function Home() {
             Interactive exam preparation: mock exams, visual explanations, and progress tracking.
           </p>
           <p style={{ opacity: 0.75, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            Instructor: Dr. László Szabó &lt;szabolaszlo@inf.elte.hu&gt;
+            by : Khoa Goodwill a9n7p5@inf.elte.hu
           </p>
           <div className="flex gap-2 flex-wrap">
             <Link to="/mock-exam" className="btn btn-accent btn-lg">🎯 Start Mock Exam</Link>

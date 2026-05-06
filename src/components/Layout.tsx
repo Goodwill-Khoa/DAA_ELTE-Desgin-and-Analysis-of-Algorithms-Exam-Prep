@@ -19,7 +19,7 @@ export default function Layout() {
               <span className="text-muted"> · Exam Prep Site</span>
             </div>
             <div className="text-muted text-small">
-              Instructor: <a href="mailto:szabolaszlo@inf.elte.hu">Dr. László Szabó</a> · szabolaszlo@inf.elte.hu
+              by : <a href="mailto:a9n7p5@inf.elte.hu">Khoa Goodwill</a> · a9n7p5@inf.elte.hu
             </div>
           </div>
         </div>
